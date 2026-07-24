@@ -2,23 +2,17 @@
 
 namespace Database\Factories;
 
-use App\Models\Model;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Model>
- */
 class ClienteFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            //
+            'nombre' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
+            'telefono' => $this->faker->optional(0.8)->numerify('7#######'),
+            'direccion' => $this->faker->optional(0.7)->address(),
         ];
     }
 }
