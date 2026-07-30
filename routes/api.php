@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoriaController;
 use App\Http\Controllers\Api\ClienteController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\UsuarioController;
 use App\Http\Controllers\Api\VentaController;
@@ -20,9 +21,8 @@ use Illuminate\Support\Facades\Route;
 | - Productos:  lectura para ambos roles, escritura solo administrador.
 | - Clientes:   CRUD completo para ambos roles.
 | - Ventas:     store y show para ambos roles; index y anular solo admin.
-|               No hay update/destroy: una venta no se edita ni se borra.
-| - Usuarios:   todo solo administrador. No hay destroy: se desactiva
-|               (campo activo), no se borra.
+| - Usuarios:   todo solo administrador. No hay destroy: se desactiva.
+| - Dashboard:  todo solo administrador (HU-07 a HU-10).
 |
 */
 
@@ -56,6 +56,12 @@ Route::prefix('v1')->group(function () {
 
             // Gestión de cajeros (sin destroy: se desactiva, no se borra)
             Route::apiResource('usuarios', UsuarioController::class)->only(['index', 'store', 'show', 'update']);
+
+            // Dashboard (HU-07 a HU-10)
+            Route::get('dashboard/resumen', [DashboardController::class, 'resumen']);
+            Route::get('dashboard/ventas-por-categoria', [DashboardController::class, 'ventasPorCategoria']);
+            Route::get('dashboard/tendencia-ventas', [DashboardController::class, 'tendenciaVentas']);
+            Route::get('dashboard/productos-top', [DashboardController::class, 'productosTop']);
         });
     });
 });
