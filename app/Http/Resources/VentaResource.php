@@ -15,6 +15,7 @@ class VentaResource extends JsonResource
             'total' => (float) $this->total,
             'fecha_venta' => $this->fecha_venta,
             'estado' => $this->estado,
+            'motivo_anulacion' => $this->motivo_anulacion,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
