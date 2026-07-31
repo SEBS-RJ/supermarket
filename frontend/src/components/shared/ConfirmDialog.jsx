@@ -34,7 +34,7 @@ export default function ConfirmDialog({
     defaultTitle = 'confirmar anulación de venta';
     defaultContent = 'al anular esta venta, el stock de los productos será devuelto al inventario y la venta cambiará a estado anulada. ¿deseas continuar?';
     defaultConfirmText = 'anular venta';
-    confirmColor = 'error';
+    confirmColor = 'warning';
   }
 
   const finalTitle = title || defaultTitle;

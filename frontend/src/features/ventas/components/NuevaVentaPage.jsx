@@ -19,6 +19,7 @@ import CheckCircleIcon     from '@mui/icons-material/CheckCircle';
 import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import PersonAddAltIcon    from '@mui/icons-material/PersonAddAlt';
 import { useFeedback }  from '../../../components/shared/Feedback';
+import { useAuth }      from '../../../context/AuthContext';
 import { useProductos, useProductosDestacados } from '../../productos/hooks/useProductos';
 import { useCategorias } from '../../categorias/hooks/useCategorias';
 import { useClientes }  from '../../clientes/hooks/useClientes';
@@ -100,22 +101,30 @@ function CartItem({ item, onQtyChange, onRemove }) {
         </Typography>
       </Box>
       <Stack direction="row" alignItems="center" spacing={0.5}>
-        <IconButton size="small" onClick={() => onQtyChange(item.producto.id, item.cantidad - 1)} sx={{ p: 0.3 }}>
-          <RemoveIcon fontSize="inherit" sx={{ fontSize: 14 }} />
-        </IconButton>
+        <Tooltip title="Quitar una unidad">
+          <IconButton size="small" onClick={() => onQtyChange(item.producto.id, item.cantidad - 1)} sx={{ p: 0.3 }}>
+            <RemoveIcon fontSize="inherit" sx={{ fontSize: 14 }} />
+          </IconButton>
+        </Tooltip>
         <Typography variant="body2" fontWeight={700} sx={{ minWidth: 20, textAlign: 'center' }}>
           {item.cantidad}
         </Typography>
-        <IconButton size="small" onClick={() => onQtyChange(item.producto.id, item.cantidad + 1)} disabled={item.cantidad >= item.producto.stock} sx={{ p: 0.3 }}>
-          <AddIcon fontSize="inherit" sx={{ fontSize: 14 }} />
-        </IconButton>
+        <Tooltip title="Agregar una unidad">
+          <span>
+            <IconButton size="small" onClick={() => onQtyChange(item.producto.id, item.cantidad + 1)} disabled={item.cantidad >= item.producto.stock} sx={{ p: 0.3 }}>
+              <AddIcon fontSize="inherit" sx={{ fontSize: 14 }} />
+            </IconButton>
+          </span>
+        </Tooltip>
       </Stack>
       <Typography variant="body2" fontWeight={700} sx={{ minWidth: 56, textAlign: 'right', color: 'primary.main' }}>
         Bs. {item.subtotal.toFixed(2)}
       </Typography>
-      <IconButton size="small" color="error" onClick={() => onRemove(item.producto.id)} sx={{ p: 0.3 }}>
-        <DeleteIcon fontSize="small" />
-      </IconButton>
+      <Tooltip title="Quitar del carrito">
+        <IconButton size="small" color="error" onClick={() => onRemove(item.producto.id)} sx={{ p: 0.3 }}>
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
     </Box>
   );
 }
@@ -124,12 +133,25 @@ function CartItem({ item, onQtyChange, onRemove }) {
 export default function NuevaVentaPage() {
   const navigate = useNavigate();
   const { showFeedback } = useFeedback();
+  const { user } = useAuth();
+  const isAdmin = ['administrador','admin'].includes((user?.rol || '').toLowerCase());
   const theme = useTheme();
 
   // Datos
   const { destacados, cargando: cargandoDest } = useProductosDestacados();
   const { categorias } = useCategorias();
-  const { clientes, recargar: recargarClientes }   = useClientes();
+
+  // Búsqueda de clientes (server-side): con miles de clientes no se puede
+  // cargar todo de una vez, así que se busca por nombre igual que productos.
+  const [busquedaCliente, setBusquedaCliente] = useState('');
+  const [debouncedBusquedaCliente, setDebouncedBusquedaCliente] = useState('');
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedBusquedaCliente(busquedaCliente), 400);
+    return () => clearTimeout(timer);
+  }, [busquedaCliente]);
+  const { clientes, recargar: recargarClientes } = useClientes(
+    useMemo(() => (debouncedBusquedaCliente ? { nombre: debouncedBusquedaCliente } : {}), [debouncedBusquedaCliente])
+  );
 
   // Filtros
   const [busqueda, setBusqueda]       = useState('');
@@ -158,6 +180,7 @@ export default function NuevaVentaPage() {
   // Carrito
   const [carrito, setCarrito]             = useState([]);
   const [clienteSelec, setClienteSelec]   = useState('');
+  const [clienteSelecObj, setClienteSelecObj] = useState(null);
   const [submitting, setSubmitting]       = useState(false);
   const [serverError, setServerError]     = useState('');
 
@@ -175,6 +198,7 @@ export default function NuevaVentaPage() {
       showFeedback('Cliente creado exitosamente', 'success');
       recargarClientes();
       setClienteSelec(newClient.id);
+      setClienteSelecObj(newClient);
       setOpenClientModal(false);
       setNewClientData({ nombre: '', email: '', telefono: '', direccion: '' });
     } catch (err) {
@@ -228,8 +252,9 @@ export default function NuevaVentaPage() {
       showFeedback('¡Venta registrada exitosamente!', 'success');
       setCarrito([]);
       setClienteSelec('');
+      setClienteSelecObj(null);
       setServerError('');
-      if (ventaId) navigate(`/venta/recibo/${ventaId}`);
+      if (ventaId) navigate(isAdmin ? `/admin/ventas/${ventaId}` : `/venta/recibo/${ventaId}`);
     } catch (err) {
       const msg = err.response?.data?.message || 'Error al registrar la venta';
       setServerError(msg);
@@ -329,11 +354,11 @@ export default function NuevaVentaPage() {
               {/* Paginación */}
               {meta && meta.last_page > 1 && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 2 }}>
-                  <Pagination 
-                    count={meta.last_page} 
-                    page={page} 
-                    onChange={(e, p) => setPage(p)} 
-                    color="primary" 
+                  <Pagination
+                    count={meta.last_page}
+                    page={page}
+                    onChange={(e, p) => setPage(p)}
+                    color="primary"
                     shape="rounded"
                   />
                 </Box>
@@ -378,30 +403,51 @@ export default function NuevaVentaPage() {
 
           {/* Cliente + Total + Botón */}
           <Box sx={{ px: 2.5, py: 2, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'grey.50' }}>
-            {/* Selector de cliente */}
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Cliente (opcional)</InputLabel>
-              <Select
-                value={clienteSelec || ''}
-                label="Cliente (opcional)"
-                onChange={(e) => {
-                  if (e.target.value === 'new') {
-                    setOpenClientModal(true);
-                  } else {
-                    setClienteSelec(e.target.value);
-                  }
+            {/* Selector de cliente — búsqueda en servidor por nombre, no depende
+                de traer todos los clientes de una vez (podrían ser miles) */}
+            <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+              <Autocomplete
+                fullWidth
+                options={clientes}
+                value={clienteSelecObj}
+                inputValue={busquedaCliente}
+                onInputChange={(_, value, reason) => {
+                  if (reason === 'input') setBusquedaCliente(value);
                 }}
-                startAdornment={<InputAdornment position="start"><PersonAddAltIcon sx={{ color: 'text.secondary', fontSize: 18 }} /></InputAdornment>}
-              >
-                <MenuItem value=""><em>Ninguno (Cliente Casual)</em></MenuItem>
-                <MenuItem value="new" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                  <AddIcon sx={{ mr: 1, fontSize: 18, verticalAlign: 'text-bottom' }} /> Agregar Nuevo Cliente
-                </MenuItem>
-                {clientes.map(c => (
-                  <MenuItem key={c.id} value={c.id}>{c.nombre} {c.telefono ? `(${c.telefono})` : ''}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                onChange={(_, value) => {
+                  setClienteSelecObj(value);
+                  setClienteSelec(value?.id || '');
+                }}
+                getOptionLabel={(c) => c?.nombre ? `${c.nombre}${c.telefono ? ` (${c.telefono})` : ''}` : ''}
+                isOptionEqualToValue={(a, b) => a.id === b.id}
+                filterOptions={(x) => x}
+                noOptionsText={busquedaCliente ? 'Sin resultados' : 'Escribe para buscar un cliente'}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Cliente (opcional)"
+                    placeholder="Buscar cliente por nombre…"
+                    slotProps={{
+                      ...params.slotProps,
+                      input: {
+                        ...params.slotProps?.input,
+                        startAdornment: (
+                          <>
+                            <InputAdornment position="start"><PersonAddAltIcon sx={{ color: 'text.secondary', fontSize: 18 }} /></InputAdornment>
+                            {params.slotProps?.input?.startAdornment}
+                          </>
+                        ),
+                      },
+                    }}
+                  />
+                )}
+              />
+              <Tooltip title="Agregar nuevo cliente">
+                <IconButton color="primary" onClick={() => setOpenClientModal(true)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
+                  <AddIcon />
+                </IconButton>
+              </Tooltip>
+            </Stack>
 
             {serverError && <Alert severity="error" sx={{ mb: 1.5, py: 0.5, fontSize: '0.8rem', borderRadius: 2 }}>{serverError}</Alert>}
 

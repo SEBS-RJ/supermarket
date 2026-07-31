@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box, Typography, Button, IconButton, Tooltip,
   Dialog, DialogTitle, DialogContent, DialogActions,
@@ -16,7 +16,8 @@ import { clientesApi } from '../api/clientesApi';
 
 export default function ClientesPage() {
   const { showFeedback } = useFeedback();
-  const { clientes, cargando, error, recargar } = useClientes();
+  const [page, setPage] = useState(1);
+  const { clientes, meta, cargando, error, recargar } = useClientes(useMemo(() => ({ page }), [page]));
 
   const [openModal, setOpenModal]     = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -129,8 +130,12 @@ export default function ClientesPage() {
             <DataGrid
               rows={clientes}
               columns={columns}
-              pageSizeOptions={[10, 25]}
-              initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+              paginationMode="server"
+              rowCount={meta?.total || 0}
+              paginationModel={{ page: page - 1, pageSize: 15 }}
+              pageSizeOptions={[15]}
+              onPaginationModelChange={(model) => setPage(model.page + 1)}
+              loading={cargando}
               disableRowSelectionOnClick
               sx={{ border: 0, '& .MuiDataGrid-columnHeaders': { bgcolor: 'grey.50', fontWeight: 600 } }}
             />

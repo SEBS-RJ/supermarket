@@ -25,3 +25,11 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+# Frontend React/Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.env
+frontend/.env.local
+**/node_modules/
+**/dist/

@@ -153,9 +153,11 @@ export default function UsuariosPage() {
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
-                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
+                        <Tooltip title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                          <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </Tooltip>
                       </InputAdornment>
                     ),
                   }

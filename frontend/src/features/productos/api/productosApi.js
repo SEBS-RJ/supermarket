@@ -2,34 +2,34 @@ import api from '../../../api/axios';
 
 export const productosApi = {
   listar: (params = {}) =>
-    api.get('/v1/productos', { params }),
+    api.get('/productos', { params }),
 
   destacados: () =>
-    api.get('/v1/productos/destacados'),
+    api.get('/productos/destacados'),
 
   obtener: (id) =>
-    api.get(`/v1/productos/${id}`),
+    api.get(`/productos/${id}`),
 
   crear: (data) => {
     // Detectar si viene con imagen (FormData)
     if (data instanceof FormData) {
-      return api.post('/v1/productos', data, {
+      return api.post('/productos', data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     }
-    return api.post('/v1/productos', data);
+    return api.post('/productos', data);
   },
 
   actualizar: (id, data) => {
     // Usar ruta POST dedicada para multipart (evita límite de PHP con PUT)
     if (data instanceof FormData) {
-      return api.post(`/v1/productos/${id}/actualizar`, data, {
+      return api.post(`/productos/${id}/actualizar`, data, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
     }
-    return api.put(`/v1/productos/${id}`, data);
+    return api.put(`/productos/${id}`, data);
   },
 
   eliminar: (id) =>
-    api.delete(`/v1/productos/${id}`),
+    api.delete(`/productos/${id}`),
 };

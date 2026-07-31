@@ -20,10 +20,17 @@ class VentaController extends Controller
      * Listado paginado, sin detalles anidados (contrato 05: para no
      * sobrecargar la respuesta dado el volumen de ventas).
      * Restringido a administrador vía ->middleware('can:admin') en routes/api.php.
+     *
+     * Sí se trae el cliente (solo id + nombre) porque la tabla lo necesita
+     * para mostrar a quién pertenece cada venta. Se usa with('cliente:id,nombre')
+     * en lugar de un eager load completo para no arrastrar email/teléfono/
+     * dirección de cada cliente en un listado de 15 filas por página.
      */
     public function index(): JsonResponse
     {
-        $ventas = Venta::orderByDesc('fecha_venta')->paginate(15);
+        $ventas = Venta::with('cliente:id,nombre')
+            ->orderByDesc('fecha_venta')
+            ->paginate(15);
 
         return VentaResource::collection($ventas)->response();
     }

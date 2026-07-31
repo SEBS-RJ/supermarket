@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     // Verificar que el token todavía sea válido en el servidor
-    api.get('/v1/me')
+    api.get('/me')
       .then((res) => {
         // /me devuelve el user plano: { id, name, email, rol }
         const userData = res.data;

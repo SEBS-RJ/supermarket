@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import {
@@ -6,8 +6,9 @@ import {
   Chip, Paper, Stack
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import CancelIcon     from '@mui/icons-material/Cancel';
+import VisibilityIcon    from '@mui/icons-material/Visibility';
+import CancelIcon        from '@mui/icons-material/Cancel';
+import PointOfSaleIcon   from '@mui/icons-material/PointOfSale';
 import StateHandler  from '../../../components/shared/StateHandler';
 import ConfirmDialog from '../../../components/shared/ConfirmDialog';
 import { useFeedback } from '../../../components/shared/Feedback';
@@ -20,7 +21,8 @@ export default function VentasListPage() {
   const { user } = useAuth();
   const isAdmin = ['administrador','admin'].includes((user?.rol || '').toLowerCase());
 
-  const { ventas, cargando, error, recargar } = useVentas();
+  const [page, setPage] = useState(1);
+  const { ventas, meta, cargando, error, recargar } = useVentas(useMemo(() => ({ page }), [page]));
   const [anularId, setAnularId]   = useState(null);
   const [anulando, setAnulando]   = useState(false);
 
@@ -79,9 +81,14 @@ export default function VentasListPage() {
 
   return (
     <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" component="h1" fontWeight={700}>Registro de Ventas</Typography>
-        <Typography variant="body2" color="text.secondary">Historial completo de todas las transacciones</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box>
+          <Typography variant="h5" component="h1" fontWeight={700}>Registro de Ventas</Typography>
+          <Typography variant="body2" color="text.secondary">Historial completo de todas las transacciones</Typography>
+        </Box>
+        <Button variant="contained" startIcon={<PointOfSaleIcon />} onClick={() => navigate('/admin/venta')} sx={{ borderRadius: 2, px: 3 }}>
+          Nueva Venta
+        </Button>
       </Box>
 
       <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
@@ -90,8 +97,12 @@ export default function VentasListPage() {
             <DataGrid
               rows={ventas}
               columns={columns}
-              pageSizeOptions={[10, 25, 50]}
-              initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+              paginationMode="server"
+              rowCount={meta?.total || 0}
+              paginationModel={{ page: page - 1, pageSize: 15 }}
+              pageSizeOptions={[15]}
+              onPaginationModelChange={(model) => setPage(model.page + 1)}
+              loading={cargando}
               disableRowSelectionOnClick
               sx={{ border: 0, '& .MuiDataGrid-columnHeaders': { bgcolor: 'grey.50', fontWeight: 600 } }}
             />

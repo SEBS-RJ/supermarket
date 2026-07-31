@@ -33,12 +33,24 @@ class Producto extends Model
 
     /**
      * URL pública de la imagen. Devuelve null si el producto no tiene portada.
+     *
+     * Soporta dos casos:
+     * - Un archivo subido manualmente por el admin, guardado en el disco
+     *   "public" (ruta relativa tipo "productos/xxxx.jpg").
+     * - Una URL absoluta generada por el seeder (ver ProductoFactory), que
+     *   se devuelve tal cual sin pasar por asset('storage/...').
      */
     public function getImagenUrlAttribute(): ?string
     {
-        return $this->imagen
-            ? asset('storage/' . $this->imagen)
-            : null;
+        if (! $this->imagen) {
+            return null;
+        }
+
+        if (str_starts_with($this->imagen, 'http://') || str_starts_with($this->imagen, 'https://')) {
+            return $this->imagen;
+        }
+
+        return asset('storage/' . $this->imagen);
     }
 
     public function categoria()

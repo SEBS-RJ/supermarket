@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box, Typography, Button, IconButton, Tooltip,
   Dialog, DialogTitle, DialogContent, DialogActions,
@@ -23,7 +23,8 @@ function generarSlug(text) {
 
 export default function CategoriasPage() {
   const { showFeedback } = useFeedback();
-  const { categorias, cargando, error, recargar } = useCategorias();
+  const [page, setPage] = useState(1);
+  const { categorias, meta, cargando, error, recargar } = useCategorias(useMemo(() => ({ page }), [page]));
 
   const [openModal, setOpenModal]     = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -138,8 +139,12 @@ export default function CategoriasPage() {
             <DataGrid
               rows={categorias}
               columns={columns}
-              pageSizeOptions={[10, 25]}
-              initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
+              paginationMode="server"
+              rowCount={meta?.total || 0}
+              paginationModel={{ page: page - 1, pageSize: 15 }}
+              pageSizeOptions={[15]}
+              onPaginationModelChange={(model) => setPage(model.page + 1)}
+              loading={cargando}
               disableRowSelectionOnClick
               sx={{ border: 0, '& .MuiDataGrid-columnHeaders': { bgcolor: 'grey.50', fontWeight: 600 } }}
             />

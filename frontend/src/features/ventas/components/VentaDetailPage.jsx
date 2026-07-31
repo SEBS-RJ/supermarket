@@ -24,7 +24,7 @@ export default function VentaDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
-  const backPath = isAdmin ? '/admin/ventas' : '/venta';
+  const backPath = isAdmin ? '/admin/ventas' : '/ventas';
 
   const fetchVentaDetail = useCallback(async () => {
     setLoading(true);

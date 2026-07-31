@@ -8,13 +8,20 @@ use App\Http\Resources\ClienteResource;
 use App\Models\Cliente;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class ClienteController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $clientes = Cliente::orderBy('nombre')->paginate(15);
+        $query = Cliente::query();
+
+        if ($request->filled('nombre')) {
+            $query->whereRaw('LOWER(nombre) LIKE ?', ['%' . strtolower($request->input('nombre')) . '%']);
+        }
+
+        $clientes = $query->orderBy('nombre')->paginate(15)->withQueryString();
 
         return ClienteResource::collection($clientes)->response();
     }

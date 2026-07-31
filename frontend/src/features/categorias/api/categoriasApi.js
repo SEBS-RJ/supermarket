@@ -2,14 +2,14 @@ import api from '../../../api/axios';
 
 export const categoriasApi = {
   listar: (params = {}) =>
-    api.get('/v1/categorias', { params }),
+    api.get('/categorias', { params }),
 
   crear: (data) =>
-    api.post('/v1/categorias', data),
+    api.post('/categorias', data),
 
   actualizar: (id, data) =>
-    api.put(`/v1/categorias/${id}`, data),
+    api.put(`/categorias/${id}`, data),
 
   eliminar: (id) =>
-    api.delete(`/v1/categorias/${id}`),
+    api.delete(`/categorias/${id}`),
 };

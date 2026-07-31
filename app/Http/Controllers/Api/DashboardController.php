@@ -68,7 +68,8 @@ class DashboardController extends Controller
                 ->map(fn ($fila) => [
                     'categoria' => $fila->categoria,
                     'total' => (float) $fila->total,
-                ]);
+                ])
+                ->toArray();
         });
 
         return response()->json(['data' => $data]);
@@ -127,7 +128,8 @@ class DashboardController extends Controller
                     'producto_id' => $fila->producto_id,
                     'nombre' => $fila->nombre,
                     'cantidad_vendida' => (int) $fila->cantidad_vendida,
-                ]);
+                ])
+                ->toArray();
         });
 
         return response()->json(['data' => $data]);

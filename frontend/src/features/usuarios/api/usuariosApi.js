@@ -2,11 +2,11 @@ import api from '../../../api/axios';
 
 export const usuariosApi = {
   listar: (params = {}) =>
-    api.get('/v1/usuarios', { params }),
+    api.get('/usuarios', { params }),
 
   crear: (data) =>
-    api.post('/v1/usuarios', data),
+    api.post('/usuarios', data),
 
   actualizar: (id, data) =>
-    api.put(`/v1/usuarios/${id}`, data),
+    api.put(`/usuarios/${id}`, data),
 };

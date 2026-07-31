@@ -2,14 +2,14 @@ import api from '../../../api/axios';
 
 export const ventasApi = {
   listar: (params = {}) =>
-    api.get('/v1/ventas', { params }),
+    api.get('/ventas', { params }),
 
   obtener: (id) =>
-    api.get(`/v1/ventas/${id}`),
+    api.get(`/ventas/${id}`),
 
   crear: (data) =>
-    api.post('/v1/ventas', data),
+    api.post('/ventas', data),
 
   anular: (id) =>
-    api.patch(`/v1/ventas/${id}/anular`),
+    api.patch(`/ventas/${id}/anular`),
 };

@@ -22,6 +22,14 @@ class ProductoFactory extends Factory
         'Taladro eléctrico', 'Foco LED',
     ];
 
+    // Paleta de colores para el fondo de la imagen generada (sin el "#",
+    // como lo pide ui-avatars). Se elige por índice según el nombre del
+    // producto, para que un mismo producto tienda a repetir color.
+    protected static array $colores = [
+        '6366f1', '059669', 'dc2626', 'd97706', '2563eb',
+        '7c3aed', '0891b2', 'db2777', '65a30d', 'ea580c',
+    ];
+
     public function definition(): array
     {
         $nombreBase = $this->faker->randomElement(self::$productosBase);
@@ -33,9 +41,38 @@ class ProductoFactory extends Factory
             'nombre' => $nombre,
             'sku' => strtoupper(Str::random(3)) . '-' . $this->faker->unique()->numerify('######'),
             'descripcion' => $this->faker->optional(0.6)->sentence(15),
+            'imagen' => $this->generarImagenPlaceholder($nombre),
             'precio' => $this->faker->randomFloat(2, 2, 500),
             'stock' => $this->faker->numberBetween(0, 1000), // nunca negativo
             'activo' => $this->faker->boolean(92),
         ];
+    }
+
+    /**
+     * Genera una URL de imagen "placeholder" con las iniciales del producto
+     * sobre un fondo de color (servicio ui-avatars.com).
+     *
+     * Por qué así y no con IA: generar 2000 imágenes reales con un modelo
+     * de imagen tomaría minutos/horas y tiene costo por imagen — no tiene
+     * sentido para datos de prueba. Este servicio arma la imagen al vuelo
+     * (solo se descarga cuando el navegador la muestra, no durante el
+     * seeder), así que sembrar los 2000 productos sigue siendo instantáneo.
+     *
+     * Si en algún momento se quiere reemplazar por fotos reales, solo hay
+     * que cambiar esta función — el resto del sistema (accessor del modelo,
+     * frontend) ya sabe mostrar tanto rutas de archivo como URLs externas.
+     */
+    private function generarImagenPlaceholder(string $nombre): string
+    {
+        $color = self::$colores[crc32($nombre) % count(self::$colores)];
+
+        return 'https://ui-avatars.com/api/?' . http_build_query([
+            'name' => $nombre,
+            'background' => $color,
+            'color' => 'fff',
+            'size' => 400,
+            'bold' => 'true',
+            'length' => 2,
+        ]);
     }
 }
