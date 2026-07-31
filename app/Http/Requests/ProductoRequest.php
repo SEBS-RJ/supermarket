@@ -18,17 +18,18 @@ class ProductoRequest extends FormRequest
 
         return [
             'categoria_id' => ['required', 'integer', 'exists:categorias,id'],
-            'nombre' => ['required', 'string', 'max:200'],
-            'sku' => [
+            'nombre'       => ['required', 'string', 'max:200'],
+            'sku'          => [
                 'required',
                 'string',
                 'max:50',
                 Rule::unique('productos', 'sku')->ignore($productoId),
             ],
-            'descripcion' => ['nullable', 'string'],
-            'precio' => ['required', 'numeric', 'min:0'],
-            'stock' => ['required', 'integer', 'min:0'],
-            'activo' => ['nullable', 'boolean'],
+            'descripcion'  => ['nullable', 'string'],
+            'imagen'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'precio'       => ['required', 'numeric', 'min:0'],
+            'stock'        => ['required', 'integer', 'min:0'],
+            'activo'       => ['nullable', 'boolean'],
         ];
     }
 
@@ -36,29 +37,26 @@ class ProductoRequest extends FormRequest
     {
         return [
             'categoria_id.required' => 'Debes seleccionar una categoría.',
-            'categoria_id.integer' => 'La categoría seleccionada no es válida.',
-            'categoria_id.exists' => 'La categoría seleccionada no existe.',
+            'categoria_id.exists'   => 'La categoría seleccionada no existe.',
 
             'nombre.required' => 'El nombre del producto es obligatorio.',
-            'nombre.string' => 'El nombre debe ser un texto válido.',
-            'nombre.max' => 'El nombre no puede superar los 200 caracteres.',
+            'nombre.max'      => 'El nombre no puede superar los 200 caracteres.',
 
-            'sku.required' => 'El SKU es obligatorio.',
-            'sku.string' => 'El SKU debe ser un texto válido.',
-            'sku.max' => 'El SKU no puede superar los 50 caracteres.',
-            'sku.unique' => 'Ya existe un producto con ese SKU.',
+            'sku.required' => 'El código del producto es obligatorio.',
+            'sku.max'      => 'El código no puede superar los 50 caracteres.',
+            'sku.unique'   => 'Ya existe un producto con ese código.',
 
-            'descripcion.string' => 'La descripción debe ser un texto válido.',
+            'imagen.image' => 'El archivo debe ser una imagen válida.',
+            'imagen.mimes' => 'Solo se aceptan imágenes JPG, PNG o WebP.',
+            'imagen.max'   => 'La imagen no puede pesar más de 2 MB.',
 
             'precio.required' => 'El precio es obligatorio.',
-            'precio.numeric' => 'El precio debe ser un número.',
-            'precio.min' => 'El precio no puede ser negativo.',
+            'precio.numeric'  => 'El precio debe ser un número.',
+            'precio.min'      => 'El precio no puede ser negativo.',
 
-            'stock.required' => 'El stock es obligatorio.',
-            'stock.integer' => 'El stock debe ser un número entero.',
-            'stock.min' => 'El stock no puede ser negativo.',
-
-            'activo.boolean' => 'El campo activo debe ser verdadero o falso.',
+            'stock.required' => 'La cantidad en inventario es obligatoria.',
+            'stock.integer'  => 'La cantidad debe ser un número entero.',
+            'stock.min'      => 'La cantidad no puede ser negativa.',
         ];
     }
 }

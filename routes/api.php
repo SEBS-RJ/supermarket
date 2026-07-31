@@ -17,13 +17,6 @@ use Illuminate\Support\Facades\Route;
 | Prefijo /api/v1. Autenticación con Sanctum (tokens). Roles: administrador
 | y vendedor (columna users.rol). Ver Gate 'admin' en RoleServiceProvider.
 |
-| - Categorías: lectura para ambos roles, escritura solo administrador.
-| - Productos:  lectura para ambos roles, escritura solo administrador.
-| - Clientes:   CRUD completo para ambos roles.
-| - Ventas:     store y show para ambos roles; index y anular solo admin.
-| - Usuarios:   todo solo administrador. No hay destroy: se desactiva.
-| - Dashboard:  todo solo administrador (HU-07 a HU-10).
-|
 */
 
 Route::prefix('v1')->group(function () {
@@ -32,36 +25,43 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
-        Route::get('me', [AuthController::class, 'me']);
+        Route::get('me',     [AuthController::class, 'me']);
 
-        // Lectura abierta a cualquier usuario autenticado
+        // --- Lectura abierta a cualquier usuario autenticado ---
         Route::apiResource('categorias', CategoriaController::class)->only(['index', 'show']);
+
+        // Productos: listar y destacados accesibles para ambos roles
+        Route::get('productos/destacados', [ProductoController::class, 'destacados']);
         Route::apiResource('productos', ProductoController::class)->only(['index', 'show']);
 
-        // CRUD completo abierto a cualquier usuario autenticado
+        // CRUD completo de clientes abierto para ambos roles
         Route::apiResource('clientes', ClienteController::class);
 
-        // Ventas: registrar y ver el propio recibo, para ambos roles
+        // Ventas: registrar y ver recibo (ambos roles)
         Route::post('ventas', [VentaController::class, 'store']);
         Route::get('ventas/{venta}', [VentaController::class, 'show']);
 
-        // Solo administrador
+        // --- Solo administrador ---
         Route::middleware('can:admin')->group(function () {
             Route::apiResource('categorias', CategoriaController::class)->only(['store', 'update', 'destroy']);
+
+            // Productos: crear, actualizar (JSON o multipart), eliminar
             Route::apiResource('productos', ProductoController::class)->only(['store', 'update', 'destroy']);
+            // Ruta POST para actualización con imagen (multipart/form-data)
+            Route::post('productos/{producto}/actualizar', [ProductoController::class, 'update']);
 
-            // Reportes y control de ventas
-            Route::get('ventas', [VentaController::class, 'index']);
-            Route::patch('ventas/{venta}/anular', [VentaController::class, 'anular']);
+            // Historial y anulación de ventas
+            Route::get('ventas',                   [VentaController::class, 'index']);
+            Route::patch('ventas/{venta}/anular',  [VentaController::class, 'anular']);
 
-            // Gestión de cajeros (sin destroy: se desactiva, no se borra)
+            // Gestión de cajeros
             Route::apiResource('usuarios', UsuarioController::class)->only(['index', 'store', 'show', 'update']);
 
-            // Dashboard (HU-07 a HU-10)
-            Route::get('dashboard/resumen', [DashboardController::class, 'resumen']);
-            Route::get('dashboard/ventas-por-categoria', [DashboardController::class, 'ventasPorCategoria']);
-            Route::get('dashboard/tendencia-ventas', [DashboardController::class, 'tendenciaVentas']);
-            Route::get('dashboard/productos-top', [DashboardController::class, 'productosTop']);
+            // Dashboard estadístico
+            Route::get('dashboard/resumen',               [DashboardController::class, 'resumen']);
+            Route::get('dashboard/ventas-por-categoria',  [DashboardController::class, 'ventasPorCategoria']);
+            Route::get('dashboard/tendencia-ventas',      [DashboardController::class, 'tendenciaVentas']);
+            Route::get('dashboard/productos-top',         [DashboardController::class, 'productosTop']);
         });
     });
 });
